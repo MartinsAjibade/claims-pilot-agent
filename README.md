@@ -4,7 +4,7 @@ Agentic RAG workflow service for insurance coverage analysis. Makes use of AWS B
 
 ## Architecture
 
-![Claim Pilot platform architecture overview image](images/arch.png)
+![Claim Pilot platform architecture overview image](arch.png)
 
 This service is the LangGraph / agentic RAG orchestrator and MCP client in the diagram: it runs the multi-agent workflow, calls AWS Bedrock for reasoning, and invokes the MCP server for policy, claim, and fraud tools.
 
