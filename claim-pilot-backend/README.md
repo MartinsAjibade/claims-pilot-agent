@@ -66,7 +66,7 @@ Calendar Versioning (CalVer): `YYYY.MM.PATCH`
 
 **Martins Ajibade**  
 
-This repository is maintained for the **Claim Pilot Agent** platform.
+This repository is maintained for the **Claim Pilot** platform.
 
 - **Email:** [martinsajibade3@gmail.com]
 
