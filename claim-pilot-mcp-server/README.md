@@ -79,10 +79,10 @@ git push origin v2026.05.1
 
 ## Maintainer
 
-**Justin Weber** — Blue Lambda Technologies  
+**Martins Ajibade** 
 
 This repository is maintained for the **Claim Pilot** platform (Blue Lambda University).
 
-- **Email:** [justin.weber@bluelambdatechnologies.com](mailto:justin.weber@bluelambdatechnologies.com)
+- **Email:** [martinsajibade3@gmail.com]
 
 For professional inquiries, security-sensitive reports, or questions about this component, please reach out via the address above.
