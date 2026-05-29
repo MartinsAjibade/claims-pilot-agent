@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Claim Pilot — Tech Stack &amp; Interview Prep</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --text: #e6edf3;
+      --muted: #8b9cb3;
+      --accent: #58a6ff;
+      --accent2: #3fb950;
+      --border: #30363d;
+      --warn: #d29922;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+    header {
+      padding: 2rem 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(165deg, #1b2838 0%, var(--bg) 70%);
+    }
+    header h1 { margin: 0 0 0.5rem; font-size: 1.65rem; font-weight: 650; }
+    header p { margin: 0; color: var(--muted); max-width: 58rem; }
+    nav {
+      padding: 0.75rem 1.5rem;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+    }
+    nav a { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+    nav a:hover { text-decoration: underline; }
+    main { max-width: 58rem; margin: 0 auto; padding: 1.5rem; }
+    section { margin-bottom: 2.5rem; scroll-margin-top: 3rem; }
+    h2 {
+      font-size: 1.2rem;
+      color: var(--accent2);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.35rem;
+      margin-top: 0;
+    }
+    h3 { font-size: 1.05rem; color: var(--text); margin: 1.25rem 0 0.5rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      margin: 0.75rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--panel); color: var(--accent); font-weight: 600; }
+    code, .mono { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 0.88em; }
+    ul { padding-left: 1.25rem; margin: 0.5rem 0; }
+    li { margin: 0.25rem 0; }
+    .note {
+      background: var(--panel);
+      border-left: 3px solid var(--warn);
+      padding: 0.65rem 1rem;
+      margin: 1rem 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .flow {
+      background: var(--panel);
+      padding: 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-family: ui-monospace, monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .tag { display: inline-block; background: #21262d; padding: 0.15rem 0.45rem; border-radius: 4px; margin: 0.1rem; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Claim Pilot — Technology Stack &amp; Interview Prep</h1>
+    <p>
+      Reference for <strong>Python / cloud / ML engineering</strong> interviews. Summarizes tools used across
+      the <strong>INSURANCE-AUTOMATION</strong> workspace (Claim Pilot): microservices, shared libraries,
+      infrastructure, and AI/observability stack. Ports reflect current local defaults (see <code>CLAUDE.md</code>).
+    </p>
+  </header>
+  <nav>
+    <a href="#overview">Overview</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#python">Python</a>
+    <a href="#frontend">Frontend</a>
+    <a href="#aws">AWS &amp; IaC</a>
+    <a href="#ai-ml">AI / ML / Eval</a>
+    <a href="#protocols">Protocols</a>
+    <a href="#devops">DevOps &amp; Quality</a>
+    <a href="#talking-points">Interview angles</a>
+  </nav>
+  <main>
+    <section id="overview">
+      <h2>1. Project overview</h2>
+      <p>
+        <strong>Claim Pilot</strong> is an AI-assisted <strong>insurance coverage analysis</strong> platform.
+        Services are <strong>independently deployable</strong> and communicate over <strong>HTTP</strong>.
+        A shared <strong>Model Context Protocol (MCP)</strong> server exposes domain tools (policy search, claims, fraud).
+      </p>
+      <div class="flow">Browser
+  → Next.js frontend (:4000)
+  → FastAPI backend / gateway (:9010)
+  → FastAPI AI workflow service (:9020)
+  → MCP tools server (:8001)
+        </div>
+      <p>
+        Optional: <strong>PostgreSQL</strong> and <strong>Redis</strong> on the backend path; <strong>docker compose</strong>
+        includes Redis for local orchestration.
+      </p>
+    </section>
+
+    <section id="architecture">
+      <h2>2. Repository map</h2>
+      <table>
+        <thead>
+          <tr><th>Component</th><th>Role</th><th>Primary tech</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>claim-pilot-frontend</code></td><td>UI, coverage check</td><td>Next.js, React, TypeScript, Tailwind</td></tr>
+          <tr><td><code>claim-pilot-backend</code></td><td>API gateway, proxies to AI</td><td>FastAPI, Pydantic, httpx</td></tr>
+          <tr><td><code>claim-pilot-ai</code></td><td>Agentic workflow, Bedrock integration path</td><td>FastAPI, LangChain, LangGraph, DSPy, LiteLLM, optional Docling/Ragas/DeepEval</td></tr>
+          <tr><td><code>claim-pilot-mcp-server</code></td><td>Tool APIs + MCP (stdio / HTTP)</td><td>FastMCP, FastAPI, uvicorn</td></tr>
+          <tr><td><code>claim-pilot-infrastructure</code></td><td>Cloud provisioning</td><td>Terraform, AWS provider</td></tr>
+          <tr><td><code>claim-pilot-logging</code></td><td>Shared structured logging</td><td>structlog, orjson, Starlette middleware optional</td></tr>
+          <tr><td><code>claim-pilot-core</code></td><td>Shared config/DB/exceptions</td><td>Pydantic Settings, psycopg2-binary, dotenv</td></tr>
+        </tbody>
+      </table>
+      <div class="note">
+        <strong>Stub / evolving areas:</strong> Bedrock invocation, Knowledge Base retrieval, and full LangGraph
+        orchestration may still be simplified or stubbed—verify in repo before claiming production completeness.
+      </div>
+    </section>
+
+    <section id="python">
+      <h2>3. Python ecosystem</h2>
+      <h3>3.1 Language &amp; packaging</h3>
+      <ul>
+        <li><strong>Python 3.11+</strong> (classifiers also mention 3.12).</li>
+        <li><strong>pyproject.toml</strong> + <strong>Hatchling</strong> build backend.</li>
+        <li><strong>CalVer</strong> versioning (<code>YYYY.MM.PATCH</code>) for packages.</li>
+        <li>Layout: <code>src/&lt;package&gt;/</code> (src layout).</li>
+      </ul>
+      <h3>3.2 Web &amp; HTTP</h3>
+      <ul>
+        <li><strong>FastAPI</strong> — async-capable API framework; OpenAPI / Pydantic models.</li>
+        <li><strong>Uvicorn</strong> — ASGI server (<code>uvicorn[standard]</code>).</li>
+        <li><strong>Starlette</strong> — ASGI foundation (via FastAPI); relevant for middleware in logging extras.</li>
+        <li><strong>httpx</strong> — async HTTP client (backend → AI, AI → MCP).</li>
+        <li><strong>python-multipart</strong> — form uploads (backend).</li>
+      </ul>
+      <h3>3.3 Data validation &amp; config</h3>
+      <ul>
+        <li><strong>Pydantic v2</strong> — request/response models.</li>
+        <li><strong>pydantic-settings</strong> — 12-factor config from environment / <code>.env</code>.</li>
+        <li><strong>python-dotenv</strong> — (<code>claim-pilot-core</code>) env loading patterns.</li>
+      </ul>
+      <h3>3.4 AWS SDK (Python)</h3>
+      <ul>
+        <li><strong>boto3</strong> — AWS APIs (Bedrock runtime / agent runtime stubs, general AWS access).</li>
+      </ul>
+      <h3>3.5 Database</h3>
+      <ul>
+        <li><strong>psycopg2-binary</strong> — PostgreSQL adapter (sync driver; common with FastAPI + thread pool or sync endpoints).</li>
+      </ul>
+      <h3>3.6 AI / orchestration (AI service)</h3>
+      <ul>
+        <li><strong>LangChain</strong> — composable LLM / tool / chain abstractions.</li>
+        <li><strong>LangGraph</strong> — graph/state-machine style workflows (intended evolution beyond minimal async pipeline).</li>
+        <li><strong>langchain-aws</strong> — AWS-specific LangChain integrations (Bedrock, etc.).</li>
+        <li><strong>DSPy</strong> — programmatic LLM “programs” (signatures, modules, optimizers); Bedrock via LiteLLM under the hood.</li>
+        <li><strong>LiteLLM</strong> — unified LLM API across providers; explicit client for <code>chat_completion</code> and eval/judge paths.</li>
+        <li><strong>Docling</strong> (optional extra) — IBM Docling: PDF/DOCX → structured markdown for ingestion / evidence.</li>
+      </ul>
+      <h3>3.7 MCP server</h3>
+      <ul>
+        <li><strong>FastMCP</strong> — high-level MCP server framework; tools exposed for LLM agents.</li>
+        <li>Underlying <strong>MCP</strong> protocol aligns with Anthropic’s Model Context Protocol ecosystem.</li>
+      </ul>
+      <h3>3.8 Logging library</h3>
+      <ul>
+        <li><strong>structlog</strong> — structured, context-rich logging.</li>
+        <li><strong>python-json-logger</strong> — JSON log formatting.</li>
+        <li><strong>orjson</strong> — fast JSON serialization.</li>
+      </ul>
+      <h3>3.9 Evaluation &amp; RAG quality (optional <code>[eval]</code> extra)</h3>
+      <ul>
+        <li><strong>Ragas</strong> — RAG evaluation metrics (e.g. faithfulness, context recall, factual correctness vs reference).</li>
+        <li><strong>DeepEval</strong> — LLM test framework; <strong>LiteLLMModel</strong> for judge models.</li>
+        <li><strong>Hugging Face datasets</strong> — tabular eval datasets.</li>
+        <li><strong>langchain-community</strong> — <strong>ChatLiteLLM</strong> bridge for Ragas + Bedrock.</li>
+      </ul>
+      <h3>3.10 Testing &amp; linting</h3>
+      <ul>
+        <li><strong>pytest</strong>, <strong>pytest-asyncio</strong>, <strong>pytest-cov</strong>.</li>
+        <li><strong>Ruff</strong> — linter/formatter (replaces flake8/isort/black for many teams).</li>
+        <li><strong>mypy</strong> — optional typing (<code>claim-pilot-core</code> dev extra).</li>
+      </ul>
+    </section>
+
+    <section id="frontend">
+      <h2>4. Frontend &amp; Node ecosystem</h2>
+      <ul>
+        <li><strong>Next.js</strong> (App Router) — React meta-framework, SSR/SSG/hybrid.</li>
+        <li><strong>React</strong> — UI library.</li>
+        <li><strong>TypeScript</strong> — static typing for JS.</li>
+        <li><strong>Tailwind CSS v4</strong> — utility-first styling (<code>@tailwindcss/postcss</code>).</li>
+        <li><strong>ESLint</strong> + <strong>eslint-config-next</strong> — lint rules aligned with Next.</li>
+      </ul>
+      <p>
+        <strong>Environment:</strong> <code>NEXT_PUBLIC_API_URL</code> points the browser to the backend (e.g. <code>http://localhost:9010</code>).
+      </p>
+    </section>
+
+    <section id="aws">
+      <h2>5. Cloud: AWS &amp; infrastructure</h2>
+      <h3>5.1 Services (from Terraform / architecture intent)</h3>
+      <table>
+        <thead>
+          <tr><th>AWS service</th><th>Typical use in this platform</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>VPC</strong></td><td>Isolated networking for ECS, RDS, Redis, etc.</td></tr>
+          <tr><td><strong>ECR</strong></td><td>Container images for backend, AI, MCP.</td></tr>
+          <tr><td><strong>ECS Fargate</strong></td><td>Serverless containers (no EC2 cluster management).</td></tr>
+          <tr><td><strong>Application Load Balancer</strong></td><td>HTTP routing to services (often implied with ECS).</td></tr>
+          <tr><td><strong>RDS (PostgreSQL)</strong></td><td>Relational data: users, claims, policies, audit.</td></tr>
+          <tr><td><strong>ElastiCache (Redis)</strong></td><td>Cache, sessions, rate limits, optional agent state.</td></tr>
+          <tr><td><strong>OpenSearch</strong></td><td>Vector / semantic search for embeddings &amp; RAG.</td></tr>
+          <tr><td><strong>S3</strong></td><td>Policy documents, uploads, static site hosting (frontend in cloud pattern).</td></tr>
+          <tr><td><strong>CloudFront</strong></td><td>CDN in front of S3 static assets (architecture diagram pattern).</td></tr>
+          <tr><td><strong>Amazon Bedrock</strong></td><td>Managed LLMs (Claude, Titan, etc.), Knowledge Bases, Guardrails.</td></tr>
+          <tr><td><strong>IAM</strong></td><td>Roles/policies for ECS tasks to call Bedrock, S3, etc.</td></tr>
+          <tr><td><strong>Secrets Manager</strong></td><td>DB credentials, API keys (cross-cutting).</td></tr>
+          <tr><td><strong>CloudWatch</strong></td><td>Logs, metrics, alarms.</td></tr>
+          <tr><td><strong>X-Ray</strong></td><td>Distributed tracing (cross-cutting).</td></tr>
+          <tr><td><strong>WAF</strong></td><td>Edge / ALB protection.</td></tr>
+          <tr><td><strong>AWS Backup</strong></td><td>Backup policies.</td></tr>
+        </tbody>
+      </table>
+      <h3>5.2 Infrastructure as code</h3>
+      <ul>
+        <li><strong>Terraform</strong> ≥ 1.6 — declarative IaC.</li>
+        <li><strong>hashicorp/aws</strong> provider ≥ 5.80 — resources in <code>terraform/environments/dev</code> style layout.</li>
+      </ul>
+      <h3>5.3 Containers &amp; local dev</h3>
+      <ul>
+        <li><strong>Docker</strong> + <strong>Docker Compose</strong> — multi-service local stack.</li>
+        <li>Per-service <strong>Dockerfile</strong> (Python slim / Node alpine patterns).</li>
+      </ul>
+    </section>
+
+    <section id="ai-ml">
+      <h2>6. AI, RAG, and evaluation (talk track)</h2>
+      <h3>6.1 Concepts you can articulate</h3>
+      <ul>
+        <li><strong>RAG</strong> — retrieve relevant policy text, then generate grounded answers with citations.</li>
+        <li><strong>Agent / tool use</strong> — LLM workflow calls <strong>MCP tools</strong> instead of embedding all data in the prompt.</li>
+        <li><strong>Coverage check API</strong> — structured output: <code>decision</code>, <code>confidence</code>, <code>reasoning</code>, <code>citations[]</code>, <code>fraud_score</code>, <code>next_action</code>.</li>
+        <li><strong>Guardrails &amp; compliance</strong> — Bedrock Guardrails for PII, safety (architecture level).</li>
+      </ul>
+      <h3>6.2 How tools map to interview keywords</h3>
+      <p>
+        <span class="tag">DSPy</span>
+        <span class="tag">LiteLLM</span>
+        <span class="tag">LangChain</span>
+        <span class="tag">LangGraph</span>
+        <span class="tag">MCP</span>
+        <span class="tag">FastMCP</span>
+        <span class="tag">Docling</span>
+        <span class="tag">Ragas</span>
+        <span class="tag">DeepEval</span>
+      </p>
+      <ul>
+        <li><strong>DSPy</strong> — “I treat prompts as typed modules with optimizers and tests, not one-off strings.”</li>
+        <li><strong>LiteLLM</strong> — “Single interface to Bedrock/OpenAI/etc.; good for eval judges and production routing.”</li>
+        <li><strong>LangGraph</strong> — “Explicit state machine for multi-step agent flows vs a single chain.”</li>
+        <li><strong>MCP / FastMCP</strong> — “Tools are a separate service; models discover and invoke tools over a standard protocol.”</li>
+        <li><strong>Docling</strong> — “Layout-aware parsing for PDFs before chunking/embedding.”</li>
+        <li><strong>Ragas / DeepEval</strong> — “Regression on faithfulness and answer quality; CI vs nightly depending on cost.”</li>
+      </ul>
+    </section>
+
+    <section id="protocols">
+      <h2>7. Protocols &amp; integration patterns</h2>
+      <ul>
+        <li><strong>REST/JSON</strong> — primary API between browser, gateway, AI, and MCP HTTP tool routes.</li>
+        <li><strong>MCP</strong> — tool discovery and invocation for LLM clients; <strong>stdio</strong> for desktop hosts, <strong>HTTP</strong> for remote.</li>
+        <li><strong>OpenAPI</strong> — implicit via FastAPI (docs at <code>/docs</code>).</li>
+      </ul>
+    </section>
+
+    <section id="devops">
+      <h2>8. DevOps, CI, and engineering practices</h2>
+      <ul>
+        <li><strong>GitHub Actions</strong> — CI per repo: install, <strong>ruff</strong>, <strong>pytest</strong>, coverage upload (pattern described in repo docs).</li>
+        <li><strong>Make</strong> — standardized targets: <code>install</code>, <code>test</code>, <code>lint</code>, <code>run</code>, etc.</li>
+        <li><strong>Codecov</strong> (optional) — coverage reporting from CI.</li>
+        <li><strong>Version tags</strong> — CalVer tags for releases.</li>
+      </ul>
+    </section>
+
+    <section id="talking-points">
+      <h2>9. Interview talking points (concise)</h2>
+      <ol>
+        <li>
+          <strong>Why microservices?</strong> Independent scaling and deploys; AI and MCP can iterate faster than monolith;
+          clear blast radius.
+        </li>
+        <li>
+          <strong>Why MCP?</strong> Decouples tool implementations (policy DB, fraud service) from the model orchestrator;
+          reusable across hosts (Cursor, Claude, custom agents).
+        </li>
+        <li>
+          <strong>Why FastAPI?</strong> Async I/O for upstream/downstream HTTP; automatic validation; great for internal gateways.
+        </li>
+        <li>
+          <strong>Why Terraform on AWS?</strong> Reproducible environments; peer review on infra diffs; maps to enterprise cloud standards.
+        </li>
+        <li>
+          <strong>RAG risks in insurance:</strong> hallucinated coverage; stale policy versions; citation fidelity; PII in logs—
+          address with KB versioning, eval suites (Ragas/DeepEval), redaction, human-in-the-loop for final decisions.
+        </li>
+        <li>
+          <strong>Trade-off:</strong> Docling and heavy eval dependencies often live in <strong>optional extras</strong> or
+          <strong>worker images</strong> to keep API containers small and CI fast.
+        </li>
+      </ol>
+    </section>
+  </main>
+  <footer>
+    Generated for Claim Pilot / INSURANCE-AUTOMATION workspace. Open this file in any browser.
+    Verify versions in each repo’s <code>pyproject.toml</code>, <code>package.json</code>, and <code>docker-compose.yml</code> before interviews.
+  </footer>
+</body>
+</html>

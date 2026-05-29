@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Pilot - Comprehensive Data Flow</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --border: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .header .badge-row {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+
+        .badge-blue { background: #1e3a5f; color: #93c5fd; border-color: #2563eb; }
+        .badge-green { background: #14352a; color: #6ee7b7; border-color: #059669; }
+        .badge-purple { background: #2e1a47; color: #c4b5fd; border-color: #7c3aed; }
+        .badge-orange { background: #3b2a10; color: #fcd34d; border-color: #d97706; }
+        .badge-cyan { background: #0c3544; color: #67e8f9; border-color: #0891b2; }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 0;
+        }
+
+        .nav-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .nav-inner::-webkit-scrollbar { display: none; }
+
+        .nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .nav a:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .diagram-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .diagram-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent-blue);
+        }
+
+        .diagram-card .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #93c5fd;
+        }
+
+        .info-box strong {
+            color: #bfdbfe;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .port-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .port-table th, .port-table td {
+            padding: 0.6rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .port-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .port-table td:first-child {
+            font-weight: 600;
+        }
+
+        .port-tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Claim Pilot</h1>
+    <p>Comprehensive Data Flow &amp; System Architecture</p>
+    <div class="badge-row">
+        <span class="badge badge-cyan">Next.js :4000</span>
+        <span class="badge badge-blue">FastAPI :9010</span>
+        <span class="badge badge-purple">AI Service :9020</span>
+        <span class="badge badge-green">MCP Server :8001</span>
+        <span class="badge badge-orange">AWS Bedrock</span>
+    </div>
+</div>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="#architecture">System Architecture</a>
+        <a href="#request-flow">Request Flow</a>
+        <a href="#sequence">Sequence Diagram</a>
+        <a href="#agent-pipeline">Agent Pipeline</a>
+        <a href="#data-models">Data Models</a>
+        <a href="#mcp-tools">MCP Tools</a>
+        <a href="#config-flow">Config &amp; Env</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#error-flow">Error Handling</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- 1. SYSTEM ARCHITECTURE -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="section" id="architecture">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--accent-blue);">1</span>
+            <h2>System Architecture</h2>
+        </div>
+        <p class="section-desc">
+            High-level view of all services, their communication protocols, and external dependencies.
+            Each service is independently deployable with its own repository, Dockerfile, and CI/CD pipeline.
+        </p>
+
+        <div class="diagram-card">
+            <h3>Service Topology</h3>
+            <div class="subtitle">HTTP-based microservice architecture with clear dependency chain</div>
+            <pre class="mermaid">
+graph TB
+    subgraph CLIENT["Client Layer"]
+        Browser["Browser / Mobile"]
+    end
+
+    subgraph FRONTEND["claim-pilot-frontend :4000"]
+        NextJS["Next.js App Router"]
+        Pages["Pages: /, /coverage-check"]
+        APIClient["lib/api.ts &mdash; fetch client"]
+    end
+
+    subgraph BACKEND["claim-pilot-backend :9010"]
+        FastAPI_BE["FastAPI Gateway"]
+        Router["APIRouter /api/v1/agentic-rag"]
+        RAGService["rag_service.py"]
+        Schemas_BE["Pydantic Schemas"]
+        Config_BE["Settings &mdash; Pydantic BaseSettings"]
+    end
+
+    subgraph AI["claim-pilot-ai :9020"]
+        FastAPI_AI["FastAPI Wrapper"]
+        Workflow["insurance_rag_graph.py"]
+        Planner["Planner Agent"]
+        Policy["Policy Agent"]
+        Fraud["Fraud Agent"]
+        Answer["Answer Agent"]
+        MCPClient["mcp_client.py &mdash; httpx"]
+        Config_AI["Settings &mdash; own config.py"]
+        Bedrock["Bedrock Client"]
+        KB["Knowledge Base Client"]
+    end
+
+    subgraph MCP["claim-pilot-mcp-server :8001"]
+        FastAPI_MCP["FastAPI HTTP API"]
+        MCPStdio["FastMCP stdio server"]
+        PolicyTool["policy_tools.py"]
+        ClaimTool["claim_tools.py"]
+        FraudTool["fraud_tools.py"]
+    end
+
+    subgraph AWS["AWS Services"]
+        BedrockSvc["Bedrock &mdash; Claude 3.5 Sonnet"]
+        S3["S3 &mdash; Policy Documents"]
+        RDS["RDS &mdash; PostgreSQL"]
+        Redis["Redis &mdash; Cache"]
+        OpenSearch["OpenSearch &mdash; Vectors"]
+    end
+
+    Browser -->|"HTTPS"| NextJS
+    NextJS --> Pages
+    Pages --> APIClient
+    APIClient -->|"HTTP POST :9010"| FastAPI_BE
+    FastAPI_BE --> Router
+    Router --> RAGService
+    RAGService --> Schemas_BE
+    RAGService -->|"HTTP POST :9020"| FastAPI_AI
+    FastAPI_AI --> Workflow
+    Workflow --> Planner
+    Workflow --> Policy
+    Workflow --> Fraud
+    Workflow --> Answer
+    Policy --> MCPClient
+    Fraud --> MCPClient
+    MCPClient -->|"HTTP POST :8001"| FastAPI_MCP
+    FastAPI_MCP --> PolicyTool
+    FastAPI_MCP --> ClaimTool
+    FastAPI_MCP --> FraudTool
+    Bedrock -.->|"boto3"| BedrockSvc
+    KB -.->|"boto3"| BedrockSvc
+    PolicyTool -.->|"future"| S3
+    Config_BE -.-> RDS
+    Config_BE -.-> Redis
+
+    classDef frontend fill:#0e4b6e,stroke:#06b6d4,color:#fff
+    classDef backend fill:#1e3a5f,stroke:#3b82f6,color:#fff
+    classDef ai fill:#2e1a47,stroke:#8b5cf6,color:#fff
+    classDef mcp fill:#14352a,stroke:#10b981,color:#fff
+    classDef aws fill:#3b2a10,stroke:#f59e0b,color:#fff
+    classDef client fill:#1a1a2e,stroke:#64748b,color:#fff
+
+    class Browser client
+    class NextJS,Pages,APIClient frontend
+    class FastAPI_BE,Router,RAGService,Schemas_BE,Config_BE backend
+    class FastAPI_AI,Workflow,Planner,Policy,Fraud,Answer,MCPClient,Config_AI,Bedrock,KB ai
+    class FastAPI_MCP,MCPStdio,PolicyTool,ClaimTool,FraudTool mcp
+    class BedrockSvc,S3,RDS,Redis,OpenSearch aws
+            </pre>
+
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#06b6d4"></div> Frontend (Next.js)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div> Backend (FastAPI Gateway)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div> AI Service (Agents)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> MCP Server (Tools)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> AWS Services</div>
+            </div>
+        </div>
+
+        <div class="diagram-card">
+            <h3>Service Communication Matrix</h3>
+            <table class="port-table">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Port</th>
+                        <th>Calls</th>
+                        <th>Protocol</th>
+                        <th>Package</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>claim-pilot-frontend</td>
+                        <td><span class="port-tag" style="background:#0e4b6e;color:#67e8f9">:4000</span></td>
+                        <td>Backend :9010</td>
+                        <td>fetch (HTTP POST)</td>
+                        <td>claim-pilot-frontend</td>
+                    </tr>
+                    <tr>
+                        <td>claim-pilot-backend</td>
+                        <td><span class="port-tag" style="background:#1e3a5f;color:#93c5fd">:9010</span></td>
+                        <td>AI Service :9020</td>
+                        <td>httpx (HTTP POST)</td>
+                        <td>claim_pilot_backend</td>
+                    </tr>
+                    <tr>
+                        <td>claim-pilot-ai</td>
+                        <td><span class="port-tag" style="background:#2e1a47;color:#c4b5fd">:9020</span></td>
+                        <td>MCP Server :8001</td>
+                        <td>httpx (HTTP POST)</td>
+                        <td>claim_pilot_ai</td>
+                    </tr>
+                    <tr>
+                        <td>claim-pilot-mcp-server</td>
+                        <td><span class="port-tag" style="background:#14352a;color:#6ee7b7">:8001</span></td>
+                        <td>AWS Bedrock (future)</td>
+                        <td>boto3 / REST</td>
+                        <td>claim_pilot_mcp_server</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- 2. REQUEST FLOW -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="section" id="request-flow">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--accent-green);">2</span>
+            <h2>Coverage Check &mdash; End-to-End Request Flow</h2>
+        </div>
+        <p class="section-desc">
+            Complete data journey from user form submission to coverage decision display,
+            showing every transformation and service boundary crossing.
+        </p>
+
+        <div class="diagram-card">
+            <h3>Request &amp; Response Pipeline</h3>
+            <div class="subtitle">Each arrow represents an HTTP boundary with JSON payloads</div>
+            <pre class="mermaid">
+flowchart LR
+    subgraph FE["Frontend :4000"]
+        Form["Coverage Check Form"]
+        Display["Results Display"]
+    end
+
+    subgraph BE["Backend :9010"]
+        EP["/api/v1/agentic-rag\n/coverage-check"]
+        SVC["rag_service.py\nrun_coverage_check()"]
+    end
+
+    subgraph AI["AI Service :9020"]
+        EP2["/api/v1/workflow\n/coverage-check"]
+        WF["insurance_rag_graph.py\nrun_insurance_rag_workflow()"]
+    end
+
+    subgraph MCP["MCP Server :8001"]
+        PS["/tools/policy-search"]
+        FS["/tools/fraud-score"]
+    end
+
+    Form -->|"POST JSON\nCoverageCheckRequest"| EP
+    EP --> SVC
+    SVC -->|"POST JSON\nCoverageCheckRequest"| EP2
+    EP2 --> WF
+    WF -->|"POST query params\npolicy_id, query"| PS
+    WF -->|"POST query params\nclaim_id"| FS
+    PS -->|"JSON\npolicy clauses[]"| WF
+    FS -->|"JSON\nfraud_score, signals[]"| WF
+    WF -->|"JSON\nCoverageCheckResponse"| SVC
+    SVC -->|"JSON\nCoverageCheckResponse"| Form
+    Form -.-> Display
+
+    style FE fill:#0e4b6e,stroke:#06b6d4,color:#fff
+    style BE fill:#1e3a5f,stroke:#3b82f6,color:#fff
+    style AI fill:#2e1a47,stroke:#8b5cf6,color:#fff
+    style MCP fill:#14352a,stroke:#10b981,color:#fff
+            </pre>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- 3. SEQUENCE DIAGRAM -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="section" id="sequence">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--accent-purple);">3</span>
+            <h2>Sequence Diagram</h2>
+        </div>
+        <p class="section-desc">
+            Detailed timing view showing the exact order of calls, data transformations, and response assembly
+            across all four services during a single coverage check request.
+        </p>
+
+        <div class="diagram-card">
+            <h3>Coverage Check &mdash; Full Sequence</h3>
+            <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as Browser
+    participant FE as Frontend :4000
+    participant BE as Backend :9010
+    participant AI as AI Service :9020
+    participant MCP as MCP Server :8001
+
+    U->>FE: Fill form & click "Check Coverage"
+    FE->>FE: Validate form fields (min 10 chars)
+
+    rect rgb(30, 58, 95)
+    Note over FE,BE: HTTP Boundary 1
+    FE->>BE: POST /api/v1/agentic-rag/coverage-check
+    Note right of FE: { claim_description, policy_id,<br/>claim_id?, question }
+    end
+
+    BE->>BE: Pydantic validates CoverageCheckRequest
+    BE->>BE: payload.model_dump()
+
+    rect rgb(46, 26, 71)
+    Note over BE,AI: HTTP Boundary 2
+    BE->>AI: POST /api/v1/workflow/coverage-check
+    Note right of BE: JSON body (same fields)
+    end
+
+    AI->>AI: run_insurance_rag_workflow(state)
+
+    Note over AI: Step 1: Planner Agent
+    AI->>AI: plan_next_steps(state)
+    AI-->>AI: { needs_policy_search: true,<br/>search_query: "..." }
+
+    Note over AI: Step 2: Policy Agent
+    rect rgb(20, 53, 42)
+    Note over AI,MCP: HTTP Boundary 3
+    AI->>MCP: POST /tools/policy-search?policy_id=X&query=Y
+    MCP->>MCP: search_policy_clauses()
+    MCP-->>AI: [ { policy_id, document, page,<br/>clause_title, clause_text, confidence } ]
+    end
+    AI->>AI: Analyze clauses for coverage keywords
+    AI-->>AI: { decision, confidence, reasoning, clauses }
+
+    Note over AI: Step 3: Fraud Agent
+    rect rgb(20, 53, 42)
+    AI->>MCP: POST /tools/fraud-score?claim_id=Z
+    MCP->>MCP: calculate_fraud_score()
+    MCP-->>AI: { claim_id, fraud_score, signals[] }
+    end
+
+    Note over AI: Step 4: Answer Agent
+    AI->>AI: compose_final_answer()
+    AI-->>AI: Assemble citations from clauses
+
+    AI-->>BE: CoverageCheckResponse JSON
+    BE->>BE: Parse into CoverageCheckResponse model
+    BE-->>FE: CoverageCheckResponse JSON
+
+    FE->>FE: setState(result)
+    FE->>U: Render decision, confidence,<br/>reasoning, citations, fraud score
+            </pre>
+
+            <div class="info-box">
+                <strong>Performance note:</strong> The current pipeline is sequential (Planner &rarr; Policy &rarr; Fraud &rarr; Answer).
+                Policy and Fraud agents could run in parallel since they are independent,
+                reducing latency by ~50% for those steps. This optimization is planned when migrating to LangGraph StateGraph.
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- 4. AGENT PIPELINE -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="section" id="agent-pipeline">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--accent-orange);">4</span>
+            <h2>Agent Pipeline &mdash; Internal Data Flow</h2>
+        </div>
+        <p class="section-desc">
+            How the four AI agents pass state through the workflow, what each agent produces,
+            and how the final response is assembled from intermediate results.
+        </p>
+
+        <div class="diagram-card">
+            <h3>Agent State Machine</h3>
+            <div class="subtitle">Each agent receives accumulated state and enriches it</div>
+            <pre class="mermaid">
+stateDiagram-v2
+    [*] --> PlannerAgent: Input State<br/>{ claim_description, policy_id,<br/>claim_id, question }
+
+    PlannerAgent --> PolicyAgent: Plan<br/>{ needs_policy_search: true,<br/>needs_fraud_check: true,<br/>search_query: "..." }
+
+    PolicyAgent --> FraudAgent: Policy Result<br/>{ decision, confidence,<br/>reasoning, clauses[] }
+
+    FraudAgent --> AnswerAgent: Fraud Result<br/>{ fraud_score: 0.27,<br/>signals[] }
+
+    AnswerAgent --> [*]: Final Response<br/>{ decision, confidence,<br/>reasoning, citations[],<br/>fraud_score, next_action }
+
+    note right of PlannerAgent
+        Pure logic - no external calls
+        Determines which tools to invoke
+    end note
+
+    note right of PolicyAgent
+        Calls MCP: /tools/policy-search
+        Analyzes clause text for keywords
+        Returns coverage decision
+    end note
+
+    note right of FraudAgent
+        Calls MCP: /tools/fraud-score
+        Skips if no claim_id provided
+        Returns risk assessment
+    end note
+
+    note right of AnswerAgent
+        Pure logic - no external calls
+        Transforms clauses into citations
+        Composes final structured response
+    end note
+            </pre>
+        </div>
+
+        <div class="diagram-card">
+            <h3>Data Transformation Pipeline</h3>
+            <div class="subtitle">Detailed view of how data is transformed at each agent step</div>
+            <pre class="mermaid">
+flowchart TD
+    Input["Input State Dict"]
+
+    subgraph P1["1. Planner Agent"]
+        P1A["Reads: state.question, state.claim_description, state.claim_id"]
+        P1B["Produces: needs_policy_search, needs_claim_lookup,<br/>needs_fraud_check, search_query"]
+    end
+
+    subgraph P2["2. Policy Agent"]
+        P2A["Reads: state.policy_id, plan.search_query"]
+        P2B["Calls: MCP /tools/policy-search"]
+        P2C["Analyzes: clause_text keywords<br/>'commercial use', 'paid delivery'"]
+        P2D["Produces: decision, confidence, reasoning, clauses[]"]
+    end
+
+    subgraph P3["3. Fraud Agent"]
+        P3A["Reads: state.claim_id"]
+        P3B{"claim_id<br/>provided?"}
+        P3C["Calls: MCP /tools/fraud-score"]
+        P3D["Returns default: fraud_score=0.2"]
+        P3E["Produces: fraud_score, signals[]"]
+    end
+
+    subgraph P4["4. Answer Agent"]
+        P4A["Reads: policy_result.clauses"]
+        P4B["Transforms clauses to citations:<br/>document, page, clause_title, text"]
+        P4C["Assembles: CoverageCheckResponse"]
+    end
+
+    Output["Final Response JSON"]
+
+    Input --> P1A
+    P1A --> P1B
+    P1B --> P2A
+    P2A --> P2B
+    P2B --> P2C
+    P2C --> P2D
+    P2D --> P3A
+    P3A --> P3B
+    P3B -->|Yes| P3C
+    P3B -->|No| P3D
+    P3C --> P3E
+    P3D --> P3E
+    P3E --> P4A
+    P4A --> P4B
+    P4B --> P4C
+    P4C --> Output
+
+    style P1 fill:#1a1a3e,stroke:#6366f1,color:#fff
+    style P2 fill:#1a2e1a,stroke:#22c55e,color:#fff
+    style P3 fill:#2e1a1a,stroke:#ef4444,color:#fff
+    style P4 fill:#2e2a1a,stroke:#f59e0b,color:#fff
+            </pre>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- 5. DATA MODELS -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="section" id="data-models">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--accent-cyan);">5</span>
+            <h2>Data Models &amp; Schemas</h2>
+        </div>
+        <p class="section-desc">
+            Pydantic models that define the API contracts between services. Each service owns its own
+            copy of these schemas to allow independent evolution.
+        </p>
+
+        <div class="diagram-card">
+            <h3>Entity Relationship &mdash; API Contracts</h3>
+            <pre class="mermaid">
+classDiagram
+    class CoverageCheckRequest {
+        +str claim_description [min_length=10]
+        +str policy_id
+        +str|None customer_id
+        +str|None claim_id
+        +str question = "Is this claim covered?"
+    }
+
+    class CoverageCheckResponse {
+        +Literal decision
+        +float confidence
+        +str reasoning
+        +list~Citation~ citations
+        +float|None fraud_score
+        +str next_action
+    }
+
+    class Citation {
+        +str document
+        +int|None page
+        +str|None clause_title
+        +str|None text
+    }
+
+    class PolicyClause {
+        +str policy_id
+        +str document
+        +int page
+        +str clause_title
+        +str clause_text
+        +float confidence
+    }
+
+    class FraudResult {
+        +str claim_id
+        +float fraud_score
+        +list~str~ signals
+    }
+
+    class ClaimDetails {
+        +str claim_id
+        +str claim_type
+        +int amount
+        +str status
+    }
+
+    CoverageCheckResponse "1" *-- "0..*" Citation
+    CoverageCheckRequest ..> CoverageCheckResponse : produces
+    PolicyClause ..> Citation : transformed to
+    FraudResult ..> CoverageCheckResponse : fraud_score
+    ClaimDetails ..> FraudResult : input
+
+    note for CoverageCheckResponse "decision: covered | not_covered\n| needs_review | unknown"
+            </pre>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- 6. MCP TOOLS -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="section" id="mcp-tools">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--accent-green);">6</span>
+            <h2>MCP Tools &amp; HTTP Endpoints</h2>
+        </div>
+        <p class="section-desc">
+            The MCP server exposes three insurance tools, available both via MCP protocol (stdio)
+            and HTTP API (FastAPI). The AI service calls the HTTP API.
+        </p>
+
+        <div class="diagram-card">
+            <h3>Tool Registry &amp; Dual Interface</h3>
+            <pre class="mermaid">
+flowchart TB
+    subgraph Callers["Tool Consumers"]
+        AI["AI Service\nhttpx client"]
+        LLM["LLM via MCP\nstdio protocol"]
+    end
+
+    subgraph HTTP["HTTP API :8001"]
+        E1["POST /tools/policy-search\n?policy_id=X&query=Y"]
+        E2["POST /tools/fraud-score\n?claim_id=Z"]
+        E3["POST /tools/claim-lookup\n?claim_id=Z"]
+        E4["GET /health"]
+    end
+
+    subgraph STDIO["MCP stdio Server"]
+        T1["@mcp.tool()\npolicy_search()"]
+        T2["@mcp.tool()\nfraud_score()"]
+        T3["@mcp.tool()\nclaim_lookup()"]
+    end
+
+    subgraph Tools["Tool Implementations"]
+        PT["policy_tools.py\nsearch_policy_clauses()"]
+        FT["fraud_tools.py\ncalculate_fraud_score()"]
+        CT["claim_tools.py\nget_claim_details()"]
+    end
+
+    subgraph Future["Future Data Sources"]
+        BKB["Bedrock\nKnowledge Base"]
+        DB["PostgreSQL\nClaims DB"]
+        ML["ML Model\nFraud Detection"]
+    end
+
+    AI -->|HTTP POST| E1
+    AI -->|HTTP POST| E2
+    LLM -->|MCP stdio| T1
+    LLM -->|MCP stdio| T2
+    LLM -->|MCP stdio| T3
+
+    E1 --> PT
+    E2 --> FT
+    E3 --> CT
+    T1 --> PT
+    T2 --> FT
+    T3 --> CT
+
+    PT -.->|planned| BKB
+    CT -.->|planned| DB
+    FT -.->|planned| ML
+
+    style Callers fill:#1a1a3e,stroke:#6366f1,color:#fff
+    style HTTP fill:#14352a,stroke:#10b981,color:#fff
+    style STDIO fill:#14352a,stroke:#10b981,color:#fff
+    style Tools fill:#1e293b,stroke:#64748b,color:#fff
+    style Future fill:#3b2a10,stroke:#f59e0b,color:#fff
+            </pre>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- 7. CONFIG FLOW -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="section" id="config-flow">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--accent-red);">7</span>
+            <h2>Configuration &amp; Environment Flow</h2>
+        </div>
+        <p class="section-desc">
+            Each service manages its own configuration via Pydantic BaseSettings. Environment variables
+            are loaded from <code>.env</code> files and can be overridden at runtime.
+        </p>
+
+        <div class="diagram-card">
+            <h3>Configuration Ownership</h3>
+            <div class="subtitle">Post-decoupling: each service owns its own config with no cross-imports</div>
+            <pre class="mermaid">
+flowchart LR
+    subgraph FE_ENV["Frontend .env"]
+        FE1["NEXT_PUBLIC_API_URL\n= http://localhost:9010"]
+    end
+
+    subgraph BE_ENV["Backend .env"]
+        BE1["APP_NAME = Claim Pilot"]
+        BE2["AI_SERVICE_URL\n= http://localhost:9020"]
+        BE3["DATABASE_URL"]
+        BE4["REDIS_URL"]
+    end
+
+    subgraph AI_ENV["AI Service .env"]
+        AI1["MCP_SERVER_URL\n= http://localhost:8001"]
+        AI2["AWS_REGION = us-east-1"]
+        AI3["BEDROCK_MODEL_ID"]
+        AI4["BEDROCK_KNOWLEDGE_BASE_ID"]
+    end
+
+    subgraph MCP_ENV["MCP Server .env"]
+        MCP1["ENVIRONMENT = dev"]
+    end
+
+    FE_ENV -->|"fetch()"| BE_ENV
+    BE_ENV -->|"httpx"| AI_ENV
+    AI_ENV -->|"httpx"| MCP_ENV
+
+    style FE_ENV fill:#0e4b6e,stroke:#06b6d4,color:#fff
+    style BE_ENV fill:#1e3a5f,stroke:#3b82f6,color:#fff
+    style AI_ENV fill:#2e1a47,stroke:#8b5cf6,color:#fff
+    style MCP_ENV fill:#14352a,stroke:#10b981,color:#fff
+            </pre>
+        </div>
+
+        <div class="diagram-card">
+            <h3>Docker Compose Service Wiring</h3>
+            <div class="subtitle">How services discover each other in containerized local development</div>
+            <pre class="mermaid">
+flowchart TD
+    subgraph DC["docker-compose.yml"]
+        direction TB
+        FE["frontend :4000\nNEXT_PUBLIC_API_URL=\nhttp://localhost:9010"]
+        BE["backend :9010\nAI_SERVICE_URL=\nhttp://ai-service:9020"]
+        AI["ai-service :9020\nMCP_SERVER_URL=\nhttp://mcp-server:8001"]
+        MCP["mcp-server :8001"]
+        REDIS["redis :6379"]
+    end
+
+    FE -->|depends_on| BE
+    BE -->|depends_on| AI
+    BE -->|depends_on| REDIS
+    AI -->|depends_on| MCP
+
+    style DC fill:#1e293b,stroke:#334155,color:#fff
+    style FE fill:#0e4b6e,stroke:#06b6d4,color:#fff
+    style BE fill:#1e3a5f,stroke:#3b82f6,color:#fff
+    style AI fill:#2e1a47,stroke:#8b5cf6,color:#fff
+    style MCP fill:#14352a,stroke:#10b981,color:#fff
+    style REDIS fill:#3b1a1a,stroke:#ef4444,color:#fff
+            </pre>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- 8. DEPLOYMENT -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="section" id="deployment">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--accent-orange);">8</span>
+            <h2>Deployment Architecture</h2>
+        </div>
+        <p class="section-desc">
+            AWS infrastructure managed by Terraform. Each service runs as an independent ECS Fargate task
+            with its own ECR repository, auto-scaling, and health checks.
+        </p>
+
+        <div class="diagram-card">
+            <h3>AWS Deployment Topology</h3>
+            <pre class="mermaid">
+flowchart TB
+    subgraph INTERNET["Internet"]
+        USER["End Users"]
+    end
+
+    subgraph AWS["AWS Cloud &mdash; us-east-1"]
+        subgraph VPC["VPC"]
+            subgraph PUB["Public Subnets"]
+                ALB["Application\nLoad Balancer"]
+            end
+
+            subgraph PRIV["Private Subnets"]
+                subgraph ECS["ECS Fargate Cluster"]
+                    FE_TASK["Frontend Task\nNext.js :4000"]
+                    BE_TASK["Backend Task\nFastAPI :9010"]
+                    AI_TASK["AI Task\nFastAPI :9020"]
+                    MCP_TASK["MCP Task\nFastAPI :8001"]
+                end
+
+                RDS_I["RDS PostgreSQL"]
+                REDIS_I["ElastiCache Redis"]
+                OS_I["OpenSearch Domain"]
+            end
+        end
+
+        ECR["ECR Repositories\n(4 images)"]
+        S3_I["S3 Bucket\nPolicy Documents"]
+        BEDROCK_I["Bedrock\nClaude 3.5 Sonnet"]
+        CW["CloudWatch\nLogs & Metrics"]
+    end
+
+    USER -->|HTTPS| ALB
+    ALB --> FE_TASK
+    ALB --> BE_TASK
+    BE_TASK --> AI_TASK
+    AI_TASK --> MCP_TASK
+    BE_TASK -.-> RDS_I
+    BE_TASK -.-> REDIS_I
+    MCP_TASK -.-> S3_I
+    AI_TASK -.-> BEDROCK_I
+    AI_TASK -.-> OS_I
+    ECR -.->|pull images| ECS
+    ECS -.->|logs| CW
+
+    style INTERNET fill:#1a1a2e,stroke:#64748b,color:#fff
+    style VPC fill:#0f1729,stroke:#334155,color:#fff
+    style PUB fill:#1a2e1a,stroke:#22c55e,color:#fff
+    style PRIV fill:#1a1a3e,stroke:#6366f1,color:#fff
+    style ECS fill:#1e293b,stroke:#334155,color:#fff
+            </pre>
+        </div>
+
+        <div class="diagram-card">
+            <h3>CI/CD Pipeline per Repository</h3>
+            <pre class="mermaid">
+flowchart LR
+    subgraph Trigger["Triggers"]
+        PUSH["Push to main"]
+        PR["Pull Request"]
+        TAG["Version Tag v*"]
+    end
+
+    subgraph CI["CI Job"]
+        LINT["Ruff Lint\n(Python repos)"]
+        TEST["Pytest + Coverage"]
+        BUILD_CHECK["Compile Check"]
+    end
+
+    subgraph CD["CD Job &mdash; on tags only"]
+        PKG["Build Package\n(.whl + .tar.gz)"]
+        GHR["Upload to\nGitHub Release"]
+        PYPI["Publish to PyPI\n(opt-in)"]
+    end
+
+    subgraph DEPLOY["Deploy &mdash; future"]
+        ECR_PUSH["Push to ECR"]
+        ECS_UPDATE["Update ECS\nTask Definition"]
+    end
+
+    PUSH --> CI
+    PR --> CI
+    TAG --> CI
+    CI --> CD
+    CD --> DEPLOY
+
+    LINT --> TEST
+    TEST --> BUILD_CHECK
+    PKG --> GHR
+    GHR --> PYPI
+
+    style Trigger fill:#3b2a10,stroke:#f59e0b,color:#fff
+    style CI fill:#14352a,stroke:#10b981,color:#fff
+    style CD fill:#2e1a47,stroke:#8b5cf6,color:#fff
+    style DEPLOY fill:#1e3a5f,stroke:#3b82f6,color:#fff
+            </pre>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- 9. ERROR FLOW -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="section" id="error-flow">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--accent-red);">9</span>
+            <h2>Error Propagation Flow</h2>
+        </div>
+        <p class="section-desc">
+            How errors propagate across service boundaries, from MCP tool failures through to the frontend display.
+        </p>
+
+        <div class="diagram-card">
+            <h3>Error Propagation Chain</h3>
+            <pre class="mermaid">
+flowchart TD
+    subgraph MCP_ERR["MCP Server Errors"]
+        ME1["Tool throws exception"]
+        ME2["Returns 500 Internal Server Error"]
+    end
+
+    subgraph AI_ERR["AI Service Error Handling"]
+        AE1["httpx.HTTPStatusError\nfrom MCP call"]
+        AE2["Agent returns default/fallback"]
+        AE3["Workflow propagates error"]
+        AE4["Returns 500 to Backend"]
+    end
+
+    subgraph BE_ERR["Backend Error Handling"]
+        BEE1["httpx.HTTPStatusError\nfrom AI service call"]
+        BEE2["Pydantic ValidationError\non request"]
+        BEE3["Returns 422 or 500\nto Frontend"]
+    end
+
+    subgraph FE_ERR["Frontend Error Handling"]
+        FE1["fetch response.ok === false"]
+        FE2["setState error message"]
+        FE3["Red error banner displayed"]
+    end
+
+    ME1 --> ME2
+    ME2 --> AE1
+    AE1 --> AE3
+    AE3 --> AE4
+    AE4 --> BEE1
+    BEE2 --> BEE3
+    BEE1 --> BEE3
+    BEE3 --> FE1
+    FE1 --> FE2
+    FE2 --> FE3
+
+    style MCP_ERR fill:#3b1a1a,stroke:#ef4444,color:#fff
+    style AI_ERR fill:#3b2a1a,stroke:#f59e0b,color:#fff
+    style BE_ERR fill:#1e3a5f,stroke:#3b82f6,color:#fff
+    style FE_ERR fill:#0e4b6e,stroke:#06b6d4,color:#fff
+            </pre>
+
+            <div class="info-box">
+                <strong>Current state:</strong> Error handling is minimal across all services. The stub implementations
+                don't throw exceptions, but production implementations should add proper try/except blocks at each HTTP
+                boundary with meaningful error codes and messages.
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    Claim Pilot &mdash; Data Flow Documentation &mdash; Generated 2026-05-09
+    &nbsp;|&nbsp; Powered by Mermaid.js
+</footer>
+
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        themeVariables: {
+            darkMode: true,
+            background: '#1e293b',
+            primaryColor: '#3b82f6',
+            primaryTextColor: '#f1f5f9',
+            primaryBorderColor: '#475569',
+            lineColor: '#64748b',
+            secondaryColor: '#8b5cf6',
+            tertiaryColor: '#1e293b',
+            noteBkgColor: '#334155',
+            noteTextColor: '#e2e8f0',
+            noteBorderColor: '#475569',
+            edgeLabelBackground: '#1e293b',
+            clusterBkg: '#0f172a',
+            clusterBorder: '#334155',
+            titleColor: '#f1f5f9',
+            actorBkg: '#1e3a5f',
+            actorBorder: '#3b82f6',
+            actorTextColor: '#f1f5f9',
+            actorLineColor: '#64748b',
+            signalColor: '#94a3b8',
+            signalTextColor: '#f1f5f9',
+            labelBoxBkgColor: '#1e293b',
+            labelBoxBorderColor: '#475569',
+            labelTextColor: '#f1f5f9',
+            loopTextColor: '#94a3b8',
+            activationBorderColor: '#3b82f6',
+            activationBkgColor: '#1e3a5f',
+            sequenceNumberColor: '#0f172a',
+        },
+        flowchart: {
+            htmlLabels: true,
+            curve: 'basis',
+        },
+        sequence: {
+            mirrorActors: false,
+            messageAlign: 'center',
+        },
+    });
+</script>
+
+</body>
+</html>
