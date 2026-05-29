@@ -1,0 +1,27 @@
+# Claim Pilot Infrastructure - CI Pipeline
+name: CI
+
+on:
+  push:
+    branches: [main, develop, development]
+  pull_request:
+    branches: [main, develop, development]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform -chdir=terraform/environments/dev init -backend=false
+
+      - name: Terraform Validate
+        run: terraform -chdir=terraform/environments/dev validate
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive terraform/
