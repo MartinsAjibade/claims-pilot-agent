@@ -1,4 +1,4 @@
-# Claim Pilot Backend — private deps via PAT.
+# Claim Pilot MCP Server — private deps via PAT.
 # Installs claim-pilot-core from the monorepo.
 
 FROM python:3.11-slim AS builder
@@ -44,6 +44,6 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-EXPOSE 9010
+EXPOSE 8001
 
-CMD ["uvicorn", "claim_pilot_backend.app.main:app", "--host", "0.0.0.0", "--port", "9010"]
+CMD ["uvicorn", "claim_pilot_mcp_server.http_api:app", "--host", "0.0.0.0", "--port", "8001"]

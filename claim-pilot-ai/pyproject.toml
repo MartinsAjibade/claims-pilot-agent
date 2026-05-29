@@ -1,87 +1,49 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+# Claim Pilot AI — private deps via PAT.
+# Installs claim-pilot-core from the monorepo.
 
-[project]
-name = "claim-pilot-ai"
-version = "2026.05.1"
-description = "Agentic RAG workflow service for insurance coverage analysis with AWS Bedrock"
-readme = "README.md"
-license = "MIT"
+FROM python:3.11-slim AS builder
 
-authors = [
-    { name = "Martins Ajibade", email = "majibade44627@ucumberlands.edu" }
-]
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
 
-keywords = ["insurance", "rag", "agents", "bedrock", "langchain", "claims"]
+ARG GITHUB_TOKEN
+RUN test -n "$GITHUB_TOKEN" || ( \
+      echo "GITHUB_TOKEN build-arg is required." && exit 1 )
 
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-]
+RUN case "$GITHUB_TOKEN" in ho_*) \
+      echo "GITHUB_TOKEN starts with ho_ — did you mean gho_? Fix .env." && exit 1 ;; \
+    esac
 
-requires-python = ">=3.11"
+RUN git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 
-dependencies = [
-    "claim-pilot-core @ git+https://github.com/MartinsAjibade/claims-pilot-agent.git@main",
-    "fastapi>=0.115.6",
-    "uvicorn[standard]>=0.34.0",
-    "pydantic>=2.10.4",
-    "pydantic-settings>=2.7.1",
-    "boto3>=1.35.98",
-    "langchain>=0.3.14",
-    "langgraph>=0.2.61",
-    "langchain-aws>=0.2.10",
-    "httpx>=0.28.1",
-    "dspy-ai>=2.5.0",
-    "litellm>=1.53.0",
-]
+ENV GIT_TERMINAL_PROMPT=0
 
-[project.optional-dependencies]
+WORKDIR /deps
 
-docling = [
-    "docling>=2.15.0",
-]
+RUN git clone --depth 1 -b main https://github.com/MartinsAjibade/claims-pilot-agent.git claims-pilot-agent
 
-eval = [
-    "ragas>=0.1.8",
-    "deepeval>=2.0.0",
-    "datasets>=3.0.0",
-    "langchain-community>=0.3.0",
-]
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir /deps/claims-pilot-agent/claim-pilot-core
 
-dev = [
-    "pytest>=8.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-asyncio>=0.23.0",
-    "ruff>=0.1.0",
-]
+WORKDIR /build
 
-[project.urls]
-Repository = "https://github.com/MartinsAjibade/claims-pilot-agent"
-Issues = "https://github.com/MartinsAjibade/claims-pilot-agent/issues"
+COPY pyproject.toml README.md ./
+COPY src/ src/
 
-[tool.hatch.metadata]
-allow-direct-references = true
+RUN sed -i 's|claim-pilot-core @ git+https://github.com/MartinsAjibade/claims-pilot-agent.git@main|claim-pilot-core @ file:///deps/claims-pilot-agent/claim-pilot-core|g' pyproject.toml \
+    && sed -i 's|claim-pilot-core @ git+https://github.com/MartinsAjibade/claims-pilot-agent.git@master|claim-pilot-core @ file:///deps/claims-pilot-agent/claim-pilot-core|g' pyproject.toml \
+    && pip install --no-cache-dir ".[docling]"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/claim_pilot_ai"]
+FROM python:3.11-slim
 
-[tool.hatch.build.targets.sdist]
-include = ["src/claim_pilot_ai"]
+WORKDIR /app
 
-[tool.ruff]
-line-length = 100
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-[tool.ruff.lint]
-select = ["E", "F", "I", "N", "W"]
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
+EXPOSE 9020
 
-markers = [
-    "eval: offline or LLM-backed evaluation (may require RUN_EVAL_TESTS and AWS)",
-]
+CMD ["uvicorn", "claim_pilot_ai.api.main:app", "--host", "0.0.0.0", "--port", "9020"]
